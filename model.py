@@ -45,14 +45,14 @@ class FlappyBird(object):
         gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_center.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
 
         body_flappy = sg.SceneGraphNode('body_flappy') # todo check if we need to clear it
-        body_flappy.transform = tr.uniformScale(0.1)
+        body_flappy.transform = tr.uniformScale(0.25)
         body_flappy.childs += [gpu_flappy]
 
         flappy = sg.SceneGraphNode('flappy')
         flappy.childs += [body_flappy]
 
         self.model = flappy # todo: why not body_flappy
-        self.pos_x = 0.2 # initial position
+        self.pos_x = -0.5 # initial position, constant
         self.pos_y = 0.5 # initial position
         self.alive = True
         self.moving = 0 # -1 down, 0 center, 1 up
@@ -60,7 +60,6 @@ class FlappyBird(object):
     def draw(self, pipeline):
         self.model.transform = tr.matmul([
             tr.translate(self.pos_x, self.pos_y, 0),
-            tr.uniformScale(0.3)
         ])
         # todo add cases when moving down (inclinacion)
         # change texture (image)
@@ -77,14 +76,14 @@ class FlappyBird(object):
     def move_down(self):
         if self.alive:
             if(self.pos_y > 0): 
-                self.pos_y -= 0.2
+                self.pos_y -= 0.05
             self.moving = -1
             # body_flappy = modify_texture_flappy(gpu_flappy, self.moving)
             # self.model = body_flappy
 
     def update(self, deltaTime):
         if self.alive:
-            self.pos_y -= deltaTime * 10
+            self.pos_y -= deltaTime * 0.7 # todo after X tubes, aumentar esto
             self.moving = 0
             # body_flappy = modify_texture_flappy(gpu_flappy, self.moving)
             # self.model = body_flappy
@@ -96,14 +95,16 @@ class FlappyBird(object):
         """
         tubes = tube_creator.tubes
         # verify same position on axis x
+        if self.pos_y < -1 or self.pos_y > 1:
+            self.alive = False
+
         for tube in tubes:
             if self.pos_x == tube.pos_x:
                 # flappy between tubes
                 if self.pos_y > tube.height_inf and self.pos_y < tube.height_sup:
                     return
                 else:
-                    return true
-        return False
+                    self.alive = False
         
     def clear(self):
         self.model.clear()
@@ -112,7 +113,7 @@ class FlappyBird(object):
 class Tube(object):
 
     def __init__(self, pipeline):
-        self.pos_x = -0.7
+        self.pos_x = 0
         self.height_inf = 0.5 #choice([0.3, 0.5, 0.6, 0.7])  # todo make it random
 
         shape_tube_inf = bs.createTextureQuad(1, 1)#self.height_inf)
@@ -148,7 +149,7 @@ class Tube(object):
         return 0.9 - self.height_inf
 
     def draw(self, pipeline):
-        self.model.transform = tr.translate(self.pos_x, -0.5, 1)#self.height_inf, 0)
+        #self.model.transform = tr.translate(self.pos_x, -0.5, 1)#self.height_inf, 0)
         sg.drawSceneGraphNode(self.model, pipeline, 'transform')
 
     def update(self, dt):

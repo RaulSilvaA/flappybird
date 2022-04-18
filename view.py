@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     # todo: choose a shader program
     # A simple shader program with position and texture coordinates as inputs.
-    pipeline = es.SimpleTextureShaderProgram()
+    pipeline = es.SimpleTextureTransformShaderProgram()
 
     # Telling OpenGL to use our shader program
     #glUseProgram(shaderProgram)
@@ -77,16 +77,17 @@ if __name__ == '__main__':
 
         # create tubes
         tubes.create_tube(pipeline)
-        tubes.update(0.3 * dt)
+        tubes.update( dt)
         flappy_bird.update(dt)
 
         # check if flappy collide with a tube
-        if flappy_bird.game_lost(tubes):
+        flappy_bird.game_lost(tubes)
+        if not flappy_bird.alive:
             print("LOSTTTTTT")
 
         # draw the models
         flappy_bird.draw(pipeline)
-        tubes.draw(pipeline)
+        #tubes.draw(pipeline)
         
         # Once the render is done, buffers are swapped, showing only the complete scene.
         glfw.swap_buffers(window)

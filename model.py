@@ -62,6 +62,8 @@ class FlappyBird(object):
             tr.translate(self.pos_x, self.pos_y, 0),
             tr.uniformScale(0.3)
         ])
+        # todo add cases when moving down (inclinacion)
+        # change texture (image)
         sg.drawSceneGraphNode(self.model, pipeline, 'transform')
 
     def move_up(self):

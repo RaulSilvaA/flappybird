@@ -6,7 +6,7 @@ from OpenGL.GL import glUseProgram, glClearColor, glEnable, glBlendFunc, glClear
 from model import *
 from controller import Controller
 
-n_tubes = 3
+n_tubes = 10
 
 if __name__ == '__main__':
     
@@ -14,8 +14,8 @@ if __name__ == '__main__':
     if not glfw.init():
         sys.exit()
 
-    width = 1000
-    height = 600
+    width = 800
+    height = 800
 
     window = glfw.create_window(width, height, 'Wrong Flappy Bird', None, None)
 
@@ -39,10 +39,6 @@ if __name__ == '__main__':
     # Telling OpenGL to use our shader program
     glUseProgram(pipeline.shaderProgram)
 
-    # Setting up the clear screen color
-    #glClearColor(0.55, 0.55, 0.85, 1.0)
-    draw_background(pipeline, width, height) # todo check this
-
     # Enabling transparencies
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -53,7 +49,6 @@ if __name__ == '__main__':
     # create objects
     flappy_bird = FlappyBird(pipeline)
     tubes = TubeCreator(n_tubes)
-    print(flappy_bird )
 
     controller.set_flappy_bird(flappy_bird)
     controller.set_tubes(tubes)
@@ -76,30 +71,27 @@ if __name__ == '__main__':
 
         # create tubes
         tubes.create_tube(pipeline)
-        tubes.update( dt)
+        tubes.update(dt)
         flappy_bird.update(dt)
 
-        # check if flappy collide with a tube
-        point = flappy_bird.game_lost(tubes)
-        if point == 1:
-            # add point to counter
-            print("pass throw the tube!")
-            if(flappy_bird.points == n_tubes):
-                # flappy wins
-                print("flappy bird did it!")
+        print("pos y bird: ", flappy_bird.pos_y)
 
+        # check if flappy collide with a tube
+        flappy_bird.game_lost(tubes)
+        # todo: delete tubes
+
+        # Setting up the background
+        draw_background(pipeline,2,2) 
         # draw the models
         flappy_bird.draw(pipeline)
         tubes.draw(pipeline)
 
-        if not flappy_bird.alive:
-            print("LOST")
-            # todo: display LOST on the screen
+        # if not flappy_bird.alive:
+        #     print("LOST")
+        #     # todo: display LOST on the screen
         
         # Once the render is done, buffers are swapped, showing only the complete scene.
         glfw.swap_buffers(window)
-
-       
 
     # freeing GPU memory
     controller.clear_gpu()

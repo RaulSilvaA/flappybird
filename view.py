@@ -37,8 +37,6 @@ if __name__ == '__main__':
     pipeline = es.SimpleTextureTransformShaderProgram()
 
     # Telling OpenGL to use our shader program
-    #glUseProgram(shaderProgram)
-    # Telling OpenGL to use our shader program
     glUseProgram(pipeline.shaderProgram)
 
     # Setting up the clear screen color
@@ -70,7 +68,6 @@ if __name__ == '__main__':
 
         # Clearing the screen in both, color and depth
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) # todo check this with the background
-        
 
         # Using the time as the x_0 parameter
         ti = glfw.get_time()

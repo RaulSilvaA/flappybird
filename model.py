@@ -3,10 +3,11 @@ import grafica.basic_shapes as bs
 import grafica.scene_graph as sg
 import grafica.easy_shaders as es
 from grafica.images_path import getImagesPath
-from OpenGL.GL import GL_STATIC_DRAW, GL_TRUE, GL_REPEAT, GL_NEAREST, glUniformMatrix4fv, glGetUniformLocation #,glClearColor
+from OpenGL.GL import GL_STATIC_DRAW, GL_TRUE, GL_REPEAT, GL_NEAREST, glUniformMatrix4fv, glGetUniformLocation, glClearColor
 
+from numpy import arange
 from typing import List
-from random import random, randint
+from random import random, choice
 
 def create_gpu(shape, pipeline):
     gpu = es.GPUShape().initBuffers()
@@ -76,13 +77,15 @@ class FlappyBird(object):
                 tr.scale(-1, 1, 0)])# inverse
         # alive
         else:
+            alpha = 3.14*1/7
             # moving up
-            if(self.moving == 1):
-                rotation = tr.rotationZ(30)
+            if(self.moving == 1): # todo detect when moving up (or create another function that is called from move_up)
+                rotation = tr.rotationZ(alpha) 
             # moving down
             else:
-                rotation = tr.rotationZ(-30)
+                rotation = tr.rotationZ(-alpha)
         # change texture: image flappy
+        print("moving: ", self.moving)
         self.model = modify_texture_flappy(self.gpu_flappy, self.moving)
         # translate and rotate
         self.model.transform = tr.matmul([
@@ -92,6 +95,7 @@ class FlappyBird(object):
         sg.drawSceneGraphNode(self.model, pipeline, 'transform')
 
     def move_up(self):
+        print("move up")
         if self.alive:
             if(self.pos_y < 1): 
                 self.pos_y += 0.2
@@ -113,6 +117,8 @@ class FlappyBird(object):
         Return 0 if bird collision with a tube 
         Return 1 if bird pass throw the tube
         """
+
+        # todo add the bird size
     
         if self.pos_y < -1 or self.pos_y > 1:
             self.alive = False
@@ -137,12 +143,12 @@ class FlappyBird(object):
 
 class Tube(object):
 
-    def __init__(self, pipeline):
-        self.pos_x = 0
-        self.height_inf = randint(0.4, 1.2)  # todo make it random
+    def __init__(self, pipeline, pos_x = 0):
+        self.pos_x = pos_x
+        self.height_inf = choice(arange(0.4, 1.2, 0.1))  # todo make it random
         min_dy = 0.2
         max_dy = 2 - self.height_inf - 0.4
-        self.height_sup= randint(min_dy, max_dy)
+        self.height_sup= choice(arange(min_dy, max_dy, 0.1))
 
         shape_tube_inf = bs.createTextureQuad(1, 1)
         shape_tube_sup = bs.createTextureQuad(1, 1)
@@ -165,7 +171,7 @@ class Tube(object):
         pos_y = 1 - self.height_sup/2
         tube_sup.transform = tr.matmul([
             tr.translate(0, pos_y, 0),
-            tr.rotationZ(180), # todo check this rotation
+            tr.rotationZ(3.14), # todo check this rotation
             tr.scale(0.3, self.height_sup, 0)
         ])
         tube_sup.childs += [gpu_tube_sup]
@@ -203,7 +209,7 @@ class TubeCreator(object):
         if len(self.tubes) >= self.n_tubes or not self.on:  # No puede haber un máximo de 10 huevos en pantalla
             return
         if random() < 0.01:
-            self.tubes.append(Tube(pipeline))
+            self.tubes.append(Tube(pipeline)) # todo add a distance between tubes
 
     def draw(self, pipeline):
         for tube in self.tubes:

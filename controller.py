@@ -11,7 +11,6 @@ class Controller():
     def __init__(self): # referencia a objetos
         self.flappy_bird = None
         self.tubes = None
-        #self.fillPolygon = True
 
     def set_flappy_bird(self, flappy_bird):
         self.flappy_bird = flappy_bird
@@ -21,11 +20,12 @@ class Controller():
          
     def on_key(self, window, key, scancode, action, mods):
 
-        # if action != glfw.PRESS:
-        #     return
-
-        # if key == glfw.KEY_SPACE:
-        #     self.fillPolygon = not controller.fillPolygon
+        if not self.flappy_bird.alive:
+            print("You've already lost!")
+            return
+        
+        if not (action == glfw.PRESS or action == glfw.RELEASE):
+            return
 
         # todo add if nothign --> down
         if key == glfw.KEY_ESCAPE:

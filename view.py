@@ -42,7 +42,8 @@ if __name__ == '__main__':
     glUseProgram(pipeline.shaderProgram)
 
     # Setting up the clear screen color
-    glClearColor(0.55, 0.55, 0.85, 1.0)
+    #glClearColor(0.55, 0.55, 0.85, 1.0)
+    draw_background(pipeline, width, height) # todo check this
 
     # Enabling transparencies
     glEnable(GL_BLEND)
@@ -68,7 +69,8 @@ if __name__ == '__main__':
         glfw.poll_events()
 
         # Clearing the screen in both, color and depth
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) # todo check this with the background
+        
 
         # Using the time as the x_0 parameter
         ti = glfw.get_time()
@@ -81,13 +83,21 @@ if __name__ == '__main__':
         flappy_bird.update(dt)
 
         # check if flappy collide with a tube
-        flappy_bird.game_lost(tubes)
-        if not flappy_bird.alive:
-            print("LOSTTTTTT")
+        point = flappy_bird.game_lost(tubes)
+        if point == 1:
+            # add point to counter
+            print("pass throw the tube!")
+            if(flappy_bird.points == n_tubes):
+                # flappy wins
+                print("flappy bird did it!")
 
         # draw the models
         flappy_bird.draw(pipeline)
-        #tubes.draw(pipeline)
+        tubes.draw(pipeline)
+
+        if not flappy_bird.alive:
+            print("LOST")
+            # todo: display LOST on the screen
         
         # Once the render is done, buffers are swapped, showing only the complete scene.
         glfw.swap_buffers(window)

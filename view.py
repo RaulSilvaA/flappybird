@@ -15,6 +15,9 @@ TODO:
 - detect when win
 - call program "flappy -N"
 - show how many points
+- añadir sonido 
+- añadir inclinasion
+- velocidad parabolica
 """
 if __name__ == '__main__':
     

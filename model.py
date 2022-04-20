@@ -22,6 +22,8 @@ def modify_texture_flappy(gpu_flappy, moving, size_bird): # todo make it a metho
     moving up --> 1
     not moving --> 0
     """
+    # glUniform1f(glGetUniformLocation(pipeline.shaderProgram,
+    #                 "texture_index"), controller.actual_sprite)
     if(moving == 1):
         gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_up.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
     else: # center or down
@@ -50,25 +52,29 @@ def draw_background(pipeline, w, h):
 class FlappyBird(object):
     
     def __init__(self, pipeline):
-        shape_flappy = bs.createTextureQuad(1,1)
+        shape_flappy = bs.createTextureQuadAdvance(0.18,0.85,0.05,0.95)
         gpu_flappy = create_gpu(shape_flappy, pipeline)
-        # gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_center.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
 
-        # body_flappy = sg.SceneGraphNode('body_flappy') # todo check if we need to clear it
-        # body_flappy.transform = tr.uniformScale(0.25)
-        # body_flappy.childs += [gpu_flappy]
-
-        # flappy = sg.SceneGraphNode('flappy')
-        # flappy.childs += [body_flappy]
-        self.pos_x = -0.5 # initial position, constant
+        self.pos_x = -0.7# initial position, constant
         self.pos_y = 0.5 # initial position
         self.alive = True
         self.moving = 0 # 0 down, 1 up
         self.points = 0 # the number of tubes the flappy bird passes throw it
         self.size_bird = 0.25
-        self.size_screen = 0.25
         self.gpu_flappy = gpu_flappy
         self.model = modify_texture_flappy(self.gpu_flappy, self.moving, self.size_bird) # todo: why not body_flappy
+        
+    @property
+    def width_bird_on_screen(self):
+        #2 * (controller.mousePos[0] - width / 2) / width,
+        width = 1000
+        return 2 * (self.size_bird - width / 2) / width #* width/2
+
+    @property
+    def height_bird_on_screen(self):
+        height = 800
+        return 2 * (height / 2 - self.size_bird) / height
+
 
     def draw(self, pipeline):
         rotation = tr.identity()
@@ -79,7 +85,7 @@ class FlappyBird(object):
                 tr.scale(-1, 1, 0)])# inverse
         # alive
         else:
-            alpha = 3.14*1/7
+            alpha = 0 # 3.14*1/7
             # moving up
             if(self.moving == 1): # todo detect when moving up (or create another function that is called from move_up)
                 rotation = tr.rotationZ(alpha) 
@@ -100,7 +106,7 @@ class FlappyBird(object):
         #print("move up")
         if self.alive:
             if(self.pos_y < 1): 
-                self.pos_y += 0.15
+                self.pos_y += 0.25# * 300/2#0.15
             self.moving = 1
 
     def move_down(self):
@@ -122,10 +128,11 @@ class FlappyBird(object):
         https://stackoverflow.com/questions/53423548/opengl-3-0-window-collision-detection#53424612
         """
         # bird axis positions
-        bird_x_left = round(self.pos_x - self.size_screen/2 , 4)
-        bird_x_right = round(self.pos_x + self.size_screen/2 , 4)
-        bird_y_inf = round(self.pos_y - self.size_screen/2 , 4)
-        bird_y_sup = round(self.pos_y + self.size_screen/2 , 4)
+        print("height: ", self.height_bird_on_screen)
+        bird_x_left = self.pos_x - self.width_bird_on_screen/2 
+        bird_x_right = self.pos_x + self.width_bird_on_screen/2
+        bird_y_inf = self.pos_y - self.height_bird_on_screen/2 
+        bird_y_sup = self.pos_y + self.height_bird_on_screen/2 
 
         #print("bird: ",bird_x_left, bird_x_right, bird_y_inf, bird_y_sup)
 
@@ -134,7 +141,7 @@ class FlappyBird(object):
         if not ((bird_y_sup < 1) and (bird_y_inf > -1)):
             print("sorry")
             self.alive = False
-            self.pos_y = -1 + self.size_screen/2 # todo fix this --> que sea mas lento
+            self.pos_y = -1 + self.size_bird/2 # todo fix this --> que sea mas lento
             tube_creator.die()
             return
         

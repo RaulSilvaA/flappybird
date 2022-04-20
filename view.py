@@ -14,8 +14,8 @@ if __name__ == '__main__':
     if not glfw.init():
         sys.exit()
 
-    width = 800
-    height = 800
+    width = 1000
+    height = 600
 
     window = glfw.create_window(width, height, 'Wrong Flappy Bird', None, None)
 
@@ -40,8 +40,8 @@ if __name__ == '__main__':
     glUseProgram(pipeline.shaderProgram)
 
     # Enabling transparencies
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    #glEnable(GL_BLEND)
+    #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     # glfw will swap buffers as soon as possible
     #glfw.swap_interval(0)

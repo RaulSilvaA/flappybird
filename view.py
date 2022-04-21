@@ -85,6 +85,8 @@ if __name__ == '__main__':
             dt = 0 # stop the game
 
         # create tubes
+        # todo equidistante
+        #if(dt > Z)
         tubeCreator.create_tube(pipeline)
         tubeCreator.update(dt)
         flappy_bird.update(dt)

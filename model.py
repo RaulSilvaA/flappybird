@@ -11,6 +11,13 @@ from random import random, choice
 from utils import create_gpu, modify_texture_flappy
 from grafica.images_path import getImagesPath
 
+##sound
+
+# import required module
+from pydub import AudioSegment
+from pydub.playback import play
+
+
 class FlappyBird(object):
     
     def __init__(self, pipeline):
@@ -138,6 +145,10 @@ class FlappyBird(object):
                 if((bird_x_left > tube_x_left + tube.width/2) and (bird_x_left < tube_x_right)):
                     if not tube in self.tubes:
                         self.tubes.append(tube)
+                        #file = "file.mp3"
+                        # for playing mp3 file
+                        song = AudioSegment.from_mp3("success.mp3")
+                        play(song)
               
 
     def clear(self):

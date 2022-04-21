@@ -12,10 +12,10 @@ class Controller():
         self.flappy_bird = None
         self.tubes = None
 
-    def set_flappy_bird(self, flappy_bird):
+    def set_flappy_bird(self, flappy_bird: 'FlappyBird'):
         self.flappy_bird = flappy_bird
 
-    def set_tubes(self, tubes):
+    def set_tube_creator(self, tubes: 'TubeCreator'):
         self.tubes = tubes
          
     def on_key(self, window, key, scancode, action, mods):
@@ -35,6 +35,7 @@ class Controller():
             if self.flappy_bird.alive: self.flappy_bird.move_down()
 
         elif key == glfw.KEY_DOWN and action == glfw.PRESS:
+            print("key down")
             if self.flappy_bird.alive: self.flappy_bird.move_down()
 
         else:

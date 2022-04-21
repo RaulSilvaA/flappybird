@@ -1,4 +1,4 @@
-from OpenGL.GL import GL_STATIC_DRAW, GL_TRUE, GL_REPEAT, GL_NEAREST
+from OpenGL.GL import GL_STATIC_DRAW, GL_TRUE, GL_REPEAT, GL_NEAREST, GL_CLAMP_TO_EDGE
 import grafica.transformations as tr
 import grafica.basic_shapes as bs
 import grafica.scene_graph as sg
@@ -14,18 +14,24 @@ from grafica.images_path import getImagesPath
 class FlappyBird(object):
     
     def __init__(self, pipeline):
-        shape_flappy = bs.createTextureQuadAdvance(0.18,0.85,0.15,0.9)
-        gpu_flappy = create_gpu(shape_flappy, pipeline)
+        # shape_flappy = bs.createTextureQuadAdvance(0.18,0.85,0.15,0.9)
+        # gpu_flappy = create_gpu(shape_flappy, pipeline)
 
         self.pos_x = -0.7 # initial position, constant
         self.pos_y = 0.5 # initial position
         self.alive = True
         self.moving = 0 # 0 down, 1 up
-        self.points = 0 # the number of tubes the flappy bird passes throw it
         self.size_bird = 0.15
-        self.gpu_flappy = gpu_flappy
-        self.model = modify_texture_flappy(self.gpu_flappy, self.moving, self.size_bird) # todo: why not body_flappy
-        
+        self.tubes = []
+        self.win = False
+        #self.gpu_flappy = gpu_flappy
+        self.pipeline = pipeline
+        self.model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird) # todo: why not body_flappy
+
+    @property 
+    def points(self):
+        # the number of tubes the flappy bird passes throw it
+        return len(self.tubes)  
     def draw(self, pipeline):
         rotation = tr.identity()
         # dead
@@ -42,7 +48,7 @@ class FlappyBird(object):
             else:
                 rotation = tr.rotationZ(-alpha)
         # change texture: image flappy
-        self.model = modify_texture_flappy(self.gpu_flappy, self.moving, self.size_bird)
+        #self.model = modify_texture_flappy(self.gpu_flappy, self.moving, self.size_bird)
         # translate and rotate
         self.model.transform = tr.matmul([
             tr.translate(self.pos_x, self.pos_y, 0),
@@ -54,23 +60,27 @@ class FlappyBird(object):
         #print("move up")
         if self.alive:
             if(self.pos_y < (1 - self.size_bird/2)): 
-                self.pos_y += 0.25
+                dt = 0.35 #* 2
+                self.pos_y += pow(dt,2)
             self.moving = 1
-
+            #self.model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird)
+            
     def move_down(self, dt = 0.02):
+        #print("move down")
         if self.alive:
             if(self.pos_y > (-1 + self.size_bird/2)): 
-                self.pos_y -= dt
+                #dt *= 4
+                self.pos_y -= dt * 0.5 # lineal  #pow(dt,2)
             self.moving = 0
+            #self.model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird)
 
     def update(self, deltaTime):
         if self.alive:
             self.move_down(deltaTime)
-            #self.pos_y -= deltaTime * 0.7 # todo after X tubes, aumentar esto
-            #self.moving = 0
     
-    def game_lost(self, tube_creator: 'TubeCreator'):
+    def game_lost(self, tube_creator):
         """
+        tubes list of tubes of the TubeCreator
         Return 0 if bird collision with a tube 
         Return 1 if bird pass throw the tube
 
@@ -86,6 +96,9 @@ class FlappyBird(object):
 
         if not tube_creator.on:
             return
+        
+        if self.win:
+            return
 
         if not ((bird_y_sup < 1) and (bird_y_inf > -1)):
             #print("ERROR")
@@ -95,40 +108,36 @@ class FlappyBird(object):
             return
         
         tubes = tube_creator.tubes
-        self.points = 0
-        # verify same position on axis x
         for i, tube in enumerate(tubes):
-            print(i)
+            #print("tube: ", i)
             # tubes axis position
-            same_axis_x = False
             tube_x_left = tube.pos_x - tube.width/2
             tube_x_right = tube.pos_x + tube.width/2
             tube_y_inf = -1 + tube.height_inf # punto alto del tubo inf
             tube_y_sup = 1 - tube.height_sup # punto bajo del tubo sup
 
-            # checking height
+            # checking height: bird same height as the tube
             if((bird_y_inf < (tube_y_inf + alpha_error)) or ((bird_y_sup > (tube_y_sup - alpha_error)))):
                 # bird collide passing throw the tube
                 if((bird_x_left > tube_x_left) and (bird_x_left < tube_x_right)):
-                    print("here 1")
+                    #print("here 1")
                     self.alive = False
                     self.pos_y = -1 + self.size_bird/2 # todo fix this --> que sea mas lento
-                    self.points = i # didnt pass throw it
                     tube_creator.die()
-                    return
-
-                print("after here 1")
-    
-                if((bird_x_right > tube_x_left) and (bird_x_right < tube_x_right)):
-                    print("here 2")
+            
+                # bird collide at the begining of the tube
+                elif((bird_x_right > tube_x_left) and (bird_x_right < tube_x_right)):
+                    #print("here 2")
                     self.alive = False
                     self.pos_y = -1 + self.size_bird/2 # todo fix this --> que sea mas lento
-                    self.points = i # didnt pass throw it
                     tube_creator.die()
-                    return
-                print("after here 2")
-        
-        #if tube_creator.on: self.points = len(tubes)
+                    
+            # different height bird and tube
+            else:
+                # bird passing throw the tube (at the end)
+                if((bird_x_left > tube_x_left + tube.width/2) and (bird_x_left < tube_x_right)):
+                    if not tube in self.tubes:
+                        self.tubes.append(tube)
               
 
     def clear(self):
@@ -137,8 +146,8 @@ class FlappyBird(object):
 
 class Tube(object):
 
-    def __init__(self, pipeline, pos_x = 1):
-        self.pos_x = pos_x
+    def __init__(self, pipeline):
+        self.pos_x = 1
         self.width = 0.25
         # create tube with a random dy
         self.height_inf = choice(arange(0.4, 1.2, 0.1))  # todo make it random
@@ -200,11 +209,11 @@ class TubeCreator(object):
         # todo print game lost
         self.on = False  # stop creating tubes
 
-    def create_tube(self, pipeline, pos_x = 1):
-        if len(self.tubes) >= self.n_tubes or not self.on:  # No puede haber un máximo de 10 huevos en pantalla
+    def create_tube(self, pipeline):
+        if len(self.tubes) >= self.n_tubes or not self.on: 
             return
-        if random() < 0.01:
-            self.tubes.append(Tube(pipeline, pos_x)) # todo add a distance between tubes
+        if random() < 0.005:
+            self.tubes.append(Tube(pipeline)) # todo add a distance between tubes
 
     def draw(self, pipeline):
         for tube in self.tubes:
@@ -217,3 +226,30 @@ class TubeCreator(object):
     def clear(self):
         for tube in self.tubes:
             tube.model.clear()
+
+class Background(object):
+
+    def __init__(self, pipeline):
+        alpha_trans = 1000
+        shape_bg = bs.createTextureQuad(alpha_trans, 1)
+        gpu_bg = create_gpu(shape_bg, pipeline)
+        gpu_bg.texture = es.textureSimpleSetup(getImagesPath("background.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
+
+        background = sg.SceneGraphNode('background')
+        background.transform = tr.scale(alpha_trans,2, 0)
+        background.childs = [gpu_bg]
+        
+        bg_final = sg.SceneGraphNode('bg_final')
+        bg_final.childs += [background]
+
+        self.pos_x = 0
+        self.model = bg_final
+
+
+    def draw(self, pipeline):
+        self.model.transform = tr.translate(self.pos_x, 0, 0)
+        sg.drawSceneGraphNode(self.model, pipeline, 'transform')
+
+    def update(self, dt):
+        self.pos_x -= dt * 0.5
+

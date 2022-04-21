@@ -15,7 +15,7 @@ def create_gpu(shape, pipeline):
     gpu.fillBuffers(shape.vertices, shape.indices, GL_STATIC_DRAW)
     return gpu
 
-def modify_texture_flappy(gpu_flappy, moving, size_bird): # todo make it a method!
+def modify_texture_flappy(pipeline, moving, size_bird): # todo make it a method!
     """
     If flappy bird is:
     moving down --> -1
@@ -24,10 +24,15 @@ def modify_texture_flappy(gpu_flappy, moving, size_bird): # todo make it a metho
     """
 
     if(moving == 1):
-        print("IM FUCKING MOVING")
-        gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_up.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
+        shape_flappy = bs.createTextureQuadAdvance(0.35,0.60,0.1,0.48)
+        gpu_flappy = create_gpu(shape_flappy, pipeline)
+        gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_up_2.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
+        #size_bird = 0.5
     else: # center or down
+        shape_flappy = bs.createTextureQuadAdvance(0.18,0.85,0.15,0.9)
+        gpu_flappy = create_gpu(shape_flappy, pipeline)
         gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_center.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
+        #size_bird = 0.5
    
     body_flappy = sg.SceneGraphNode('body_flappy') # todo check if we need to clear it
     body_flappy.transform = tr.uniformScale(size_bird)
@@ -98,11 +103,24 @@ def draw_points(pipeline, number):
 
 
     gpu_point = create_gpu(shape_point, pipeline)
-    gpu_point.texture = es.textureSimpleSetup(getImagesPath("points"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
+    gpu_point.texture = es.textureSimpleSetup(getImagesPath("points.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
 
     points = sg.SceneGraphNode('points')
     points.childs = [gpu_point]
 
-    points.transform = tr.scale(w, h, 0)
+    points.transform = tr.matmul([tr.translate(0, 0.5, 0), tr.scale(0.15,0.25, 0)])
+
+    sg.drawSceneGraphNode(points, pipeline, 'transform')
+
+
+def draw_points_2(pipeline, number):
+    shape_point = bs.createTextureQuadAdvance(0,1,0,1)
+    gpu_point = create_gpu(shape_point, pipeline)
+    gpu_point.texture = es.textureSimpleSetup(getImagesPath("points/" + str(number)+ ".png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
+
+    points = sg.SceneGraphNode('point_'+ str(number))
+    points.childs = [gpu_point]
+
+    points.transform = tr.matmul([tr.translate(0, 0.5, 0), tr.scale(0.15,0.25, 0)])
 
     sg.drawSceneGraphNode(points, pipeline, 'transform')

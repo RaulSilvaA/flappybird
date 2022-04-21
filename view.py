@@ -2,24 +2,26 @@
 import glfw # GLFW just sets up the window and context
 import sys
 from OpenGL.GL import * #glUseProgram, glClearColor, glEnable, glBlendFunc, glClear, GL_BLEND, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA 
+from random import randint
 
 from model import *
 from controller import Controller
-from utils import draw_image
-
-n_tubes = 3
+from utils import draw_image, draw_points_2, draw_points
 
 """ 
 TODO:
-- fix dx between tubes
-- detect when win
-- call program "flappy -N"
-- show how many points
 - añadir sonido 
 - añadir inclinasion
-- velocidad parabolica
+- readme
 """
 if __name__ == '__main__':
+
+    # no args given
+    if(len(sys.argv) == 1):
+        print("hello")
+        n_tubes = randint(3,10)
+    else:
+        n_tubes = int(sys.argv[1])
     
     # Initialize glfw
     if not glfw.init():
@@ -28,7 +30,7 @@ if __name__ == '__main__':
     width = 1000
     height = 600
 
-    window = glfw.create_window(width, height, 'Wrong Flappy Bird', None, None)
+    window = glfw.create_window(width, height, 'Catty Bird', None, None)
 
     if not window:
         glfw.terminate()
@@ -36,7 +38,6 @@ if __name__ == '__main__':
 
     # set the controller
     controller = Controller()
-
     # set the current window
     glfw.make_context_current(window)
 
@@ -54,14 +55,15 @@ if __name__ == '__main__':
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     # glfw will swap buffers as soon as possible
-    #glfw.swap_interval(0)
+    glfw.swap_interval(0)
 
     # create objects
     flappy_bird = FlappyBird(pipeline)
-    tubes = TubeCreator(n_tubes)
+    tubeCreator = TubeCreator(n_tubes)
+    background = Background(pipeline) # create object to apply the transformation
 
     controller.set_flappy_bird(flappy_bird)
-    controller.set_tubes(tubes)
+    controller.set_tube_creator(tubeCreator)
 
     t0 = 0
 
@@ -83,28 +85,34 @@ if __name__ == '__main__':
             dt = 0 # stop the game
 
         # create tubes
-        tubes.create_tube(pipeline, 1)
-        tubes.update(dt)
+        tubeCreator.create_tube(pipeline)
+        tubeCreator.update(dt)
         flappy_bird.update(dt)
+        background.update(dt)
 
         # check if flappy collide with a tube
-        flappy_bird.game_lost(tubes)
+        flappy_bird.game_lost(tubeCreator)
 
         # draw the models and background
         if flappy_bird.alive:
             # Setting up the background
-            draw_image(pipeline,2,2,"background") 
-            # todo detect if pass throw all the tubes
-            print("points: ", flappy_bird.points)
+            #draw_image(pipeline,2,2,"background") 
+            background.draw(pipeline)
+            # draw the points
+            if(flappy_bird.points < 10):
+                draw_points(pipeline, flappy_bird.points)
+            else:
+                draw_points_2(pipeline, flappy_bird.points)
             if(flappy_bird.points == n_tubes): # todo fix this
-                print("WIN!!!!!")
+                #print("WIN!!!!!")
+                flappy_bird.win = True
                 draw_image(pipeline,1,1,"win")
         else:
             glClearColor(1, 0, 0, 1.0)
             draw_image(pipeline,1,1,"lose")
             # asign final points
 
-        tubes.draw(pipeline)
+        tubeCreator.draw(pipeline)
         flappy_bird.draw(pipeline)
 
         

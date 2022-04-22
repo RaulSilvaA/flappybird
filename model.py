@@ -12,7 +12,7 @@ from utils import create_gpu, modify_texture_flappy
 from grafica.images_path import getImagesPath
 
 ##sound
-from playsound import playsound
+#from playsound import playsound
 
 # import required module
 # from pydub import AudioSegment
@@ -34,7 +34,6 @@ class FlappyBird(object):
         self.win = False
         #self.gpu_flappy = gpu_flappy
         self.pipeline = pipeline
-        print("moving init :",self.moving)
         self.model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird) # todo: why not body_flappy
 
     @property 
@@ -46,7 +45,6 @@ class FlappyBird(object):
         self.model = new_model
     
     def draw(self, pipeline):
-        print("moving :",self.moving)
         rotation = tr.identity()
         # dead
         if not self.alive:
@@ -95,8 +93,6 @@ class FlappyBird(object):
     def game_lost(self, tube_creator):
         """
         update the bird tube list to indicate how many tubes the bird has passed throw
-
-        https://stackoverflow.com/questions/53423548/opengl-3-0-window-collision-detection#53424612
         """
         # bird axis positions
         bird_x_left = self.pos_x - self.size_bird/2 
@@ -128,6 +124,7 @@ class FlappyBird(object):
             tube_y_inf = -1 + tube.height_inf # punto alto del tubo inf
             tube_y_sup = 1 - tube.height_sup # punto bajo del tubo sup
 
+            ##### BAD ######
             # checking height: bird same height as the tube
             if((bird_y_inf < (tube_y_inf + alpha_error)) or ((bird_y_sup > (tube_y_sup - alpha_error)))):
                 # bird collide passing throw the tube
@@ -144,13 +141,14 @@ class FlappyBird(object):
                     self.pos_y = -1 + self.size_bird/2 # todo fix this --> que sea mas lento
                     tube_creator.die()
                     
+            ##### GOOD ######
             # different height bird and tube
             else:
                 # bird passing throw the tube (at the end)
                 if((bird_x_left > tube_x_left + tube.width/2) and (bird_x_left < tube_x_right)):
                     if not tube in self.tubes:
                         self.tubes.append(tube)
-                        playsound('success.mp3')
+                        #playsound('success.mp3')
               
 
     def clear(self):
@@ -179,7 +177,7 @@ class Tube(object):
         gpu_tube_sup.texture = es.textureSimpleSetup(getImagesPath("tube.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
 
         tube_inf = sg.SceneGraphNode('tube_inf')
-        pos_y = -1 + self.height_inf/2 # todo check this translation
+        pos_y = -1 + self.height_inf/2 
         tube_inf.transform = tr.matmul([
             tr.translate(0, pos_y, 0),
             tr.scale(self.width, self.height_inf, 0)
@@ -190,7 +188,7 @@ class Tube(object):
         pos_y = 1 - self.height_sup/2
         tube_sup.transform = tr.matmul([
             tr.translate(0, pos_y, 0),
-            tr.rotationZ(3.14), # todo check this rotation
+            tr.rotationZ(3.14), # rotation 180
             tr.scale(self.width, self.height_sup, 0)
         ])
         tube_sup.childs += [gpu_tube_sup]
@@ -240,9 +238,9 @@ class TubeCreator(object):
             tube.model.clear()
 
 class Background(object):
-
+    
     def __init__(self, pipeline):
-        alpha_trans = 1000
+        alpha_trans = 100000
         shape_bg = bs.createTextureQuad(alpha_trans, 1)
         gpu_bg = create_gpu(shape_bg, pipeline)
         gpu_bg.texture = es.textureSimpleSetup(getImagesPath("background.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)

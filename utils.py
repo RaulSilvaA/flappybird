@@ -25,7 +25,7 @@ def modify_texture_flappy(pipeline, moving, size_bird): # todo make it a method!
     #print("call to modify_texture_flappy: ", moving)
 
     if(moving == 1):
-        print("modify_texture_flappy, moving is 1")
+        #print("modify_texture_flappy, moving is 1")
         shape_flappy = bs.createTextureQuadAdvance(0.35,0.60,0.1,0.48)
         gpu_flappy = create_gpu(shape_flappy, pipeline)
         gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_up_2.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)

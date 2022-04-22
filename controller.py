@@ -2,8 +2,7 @@ import glfw
 from typing import Optional
 
 class Controller():
-    # declarar tipo de chansey
-    flappy_bird: Optional['FlappyBird'] # 'Chansey'
+    flappy_bird: Optional['FlappyBird'] 
     tubes: Optional['TubeCreator']
     tube: Optional['Tube']
 

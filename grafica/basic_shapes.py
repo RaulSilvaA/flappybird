@@ -170,6 +170,7 @@ def createTextureQuad(nx, ny):
 
 def createTextureQuadAdvance(nx0, nx1, ny0, ny1):
     """ 
+    create Texture Quad
     from nx0 to nx1 
     from ny0 to ny1
     """

@@ -11,11 +11,10 @@ from utils import draw_image, draw_points_2, draw_points
 """ 
 TODO:
 - añadir sonido 
-- añadir inclinasion
+- añadir inclinasion∂
 - readme
 """
 if __name__ == '__main__':
-
     # no args given
     if(len(sys.argv) == 1):
         print("hello")
@@ -66,6 +65,7 @@ if __name__ == '__main__':
     controller.set_tube_creator(tubeCreator)
 
     t0 = 0
+    c0 = 0
 
     # Application loop
     while not glfw.window_should_close(window):
@@ -79,15 +79,20 @@ if __name__ == '__main__':
         # Using the time as the x_0 parameter
         if flappy_bird.alive:
             ti = glfw.get_time()
+            ci = ti # distance
+            dc = ci - c0 # dx distance
             dt = ti - t0
             t0 = ti
         else: 
             dt = 0 # stop the game
 
-        # create tubes
-        # todo equidistante
-        #if(dt > Z)
-        tubeCreator.create_tube(pipeline)
+        # create tubes with a distance between them
+        if(dc > 2):
+            #print("create tube c1: ", ci)
+            tubeCreator.create_tube(pipeline)
+            c0 = ci
+        
+        # update position
         tubeCreator.update(dt)
         flappy_bird.update(dt)
         background.update(dt)
@@ -112,11 +117,9 @@ if __name__ == '__main__':
         else:
             glClearColor(1, 0, 0, 1.0)
             draw_image(pipeline,1,1,"lose")
-            # asign final points
 
         tubeCreator.draw(pipeline)
         flappy_bird.draw(pipeline)
-
         
         # Once the render is done, buffers are swapped, showing only the complete scene.
         glfw.swap_buffers(window)

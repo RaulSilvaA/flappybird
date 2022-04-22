@@ -12,10 +12,11 @@ from utils import create_gpu, modify_texture_flappy
 from grafica.images_path import getImagesPath
 
 ##sound
+from playsound import playsound
 
 # import required module
-from pydub import AudioSegment
-from pydub.playback import play
+# from pydub import AudioSegment
+# from pydub.playback import play
 
 
 class FlappyBird(object):
@@ -27,19 +28,25 @@ class FlappyBird(object):
         self.pos_x = -0.7 # initial position, constant
         self.pos_y = 0.5 # initial position
         self.alive = True
-        self.moving = 0 # 0 down, 1 up
+        self.moving = 1 # 0 down, 1 up
         self.size_bird = 0.15
         self.tubes = []
         self.win = False
         #self.gpu_flappy = gpu_flappy
         self.pipeline = pipeline
+        print("moving init :",self.moving)
         self.model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird) # todo: why not body_flappy
 
     @property 
     def points(self):
         # the number of tubes the flappy bird passes throw it
         return len(self.tubes)  
+    
+    def set_model(self, new_model):
+        self.model = new_model
+    
     def draw(self, pipeline):
+        print("moving :",self.moving)
         rotation = tr.identity()
         # dead
         if not self.alive:
@@ -47,7 +54,7 @@ class FlappyBird(object):
                 tr.scale(-1, -1, 0)])# inverse
         # alive
         else:
-            alpha = 3.14*1/7
+            alpha = 3.14*1/9
             # moving up
             if(self.moving == 1): # todo detect when moving up (or create another function that is called from move_up)
                 rotation = tr.rotationZ(alpha) 
@@ -55,6 +62,8 @@ class FlappyBird(object):
             else:
                 rotation = tr.rotationZ(-alpha)
         # change texture: image flappy
+        new_model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird)
+        self.set_model(new_model)
         #self.model = modify_texture_flappy(self.gpu_flappy, self.moving, self.size_bird)
         # translate and rotate
         self.model.transform = tr.matmul([
@@ -70,7 +79,6 @@ class FlappyBird(object):
                 dt = 0.35 #* 2
                 self.pos_y += pow(dt,2)
             self.moving = 1
-            #self.model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird)
             
     def move_down(self, dt = 0.02):
         #print("move down")
@@ -79,7 +87,6 @@ class FlappyBird(object):
                 #dt *= 4
                 self.pos_y -= dt * 0.5 # lineal  #pow(dt,2)
             self.moving = 0
-            #self.model = modify_texture_flappy(self.pipeline, self.moving, self.size_bird)
 
     def update(self, deltaTime):
         if self.alive:
@@ -87,9 +94,7 @@ class FlappyBird(object):
     
     def game_lost(self, tube_creator):
         """
-        tubes list of tubes of the TubeCreator
-        Return 0 if bird collision with a tube 
-        Return 1 if bird pass throw the tube
+        update the bird tube list to indicate how many tubes the bird has passed throw
 
         https://stackoverflow.com/questions/53423548/opengl-3-0-window-collision-detection#53424612
         """
@@ -145,10 +150,7 @@ class FlappyBird(object):
                 if((bird_x_left > tube_x_left + tube.width/2) and (bird_x_left < tube_x_right)):
                     if not tube in self.tubes:
                         self.tubes.append(tube)
-                        #file = "file.mp3"
-                        # for playing mp3 file
-                        song = AudioSegment.from_mp3("success.mp3")
-                        play(song)
+                        playsound('success.mp3')
               
 
     def clear(self):
@@ -158,7 +160,7 @@ class FlappyBird(object):
 class Tube(object):
 
     def __init__(self, pipeline):
-        self.pos_x = 1
+        self.pos_x = 1.25
         self.width = 0.25
         # create tube with a random dy
         self.height_inf = choice(arange(0.4, 1.2, 0.1))  # todo make it random
@@ -223,8 +225,7 @@ class TubeCreator(object):
     def create_tube(self, pipeline):
         if len(self.tubes) >= self.n_tubes or not self.on: 
             return
-        if random() < 0.005:
-            self.tubes.append(Tube(pipeline)) # todo add a distance between tubes
+        self.tubes.append(Tube(pipeline)) # todo add a distance between tubes
 
     def draw(self, pipeline):
         for tube in self.tubes:

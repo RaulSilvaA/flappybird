@@ -18,18 +18,20 @@ def create_gpu(shape, pipeline):
 def modify_texture_flappy(pipeline, moving, size_bird): # todo make it a method!
     """
     If flappy bird is:
-    moving down --> -1
     moving up --> 1
+    moving down --> 0
     not moving --> 0
     """
+    #print("call to modify_texture_flappy: ", moving)
 
     if(moving == 1):
+        print("modify_texture_flappy, moving is 1")
         shape_flappy = bs.createTextureQuadAdvance(0.35,0.60,0.1,0.48)
         gpu_flappy = create_gpu(shape_flappy, pipeline)
         gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_up_2.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
         #size_bird = 0.5
     else: # center or down
-        shape_flappy = bs.createTextureQuadAdvance(0.18,0.85,0.15,0.9)
+        shape_flappy = bs.createTextureQuadAdvance(0.15,0.85,0.15,0.9)
         gpu_flappy = create_gpu(shape_flappy, pipeline)
         gpu_flappy.texture = es.textureSimpleSetup(getImagesPath("fp_center.png"), GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST)
         #size_bird = 0.5
